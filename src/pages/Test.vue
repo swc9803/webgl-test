@@ -11,7 +11,6 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 const containerRef = ref();
 const objRef = ref();
-let objPositionX;
 let camera;
 let raf;
 
@@ -23,7 +22,6 @@ const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 scene.background = new THREE.Color(fogColor);
 scene.fog = new THREE.Fog(fogColor, 2, 16); // 거리
-// scene.fog = new THREE.FogExp2(fogColor, 0.2); // 밀도
 
 // torus
 const geometry = new THREE.TorusGeometry(0.7, 0.3, 12, 80);
@@ -79,17 +77,43 @@ const onResize = () => {
 
 const onKeyDown = e => {
 	if (e.key === 'd') {
-		gsap.to(objRef.value.position, { x: '+=1', duration: 0.1, repeat: -1 });
+		gsap.to(objRef.value.position, { x: '+=0.1', duration: 0.1 });
+	} else if (e.key === 'a') {
+		gsap.to(objRef.value.position, { x: '-=0.1', duration: 0.1 });
+	} else if (e.key === 'w') {
+		gsap.to(objRef.value.position, { z: '-=0.1', duration: 0.1 });
+	} else if (e.key === 's') {
+		gsap.to(objRef.value.position, { z: '+=0.1', duration: 0.1 });
 	}
 };
 const onKeyUp = e => {
-	if (e.key === 'd') {
-		gsap.killTweensOf(objRef.value.position);
-		objRef.value.position.x = objPositionX;
+	// if (e.key === 'd') {
+	// 	gsap.killTweensOf(objRef.value.position);
+	// }
+};
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+const onMouseClick = e => {
+	// 마우스의 클릭 위치를 정규화된 장치 좌표(normalized device coordinates)로 변환
+	mouse.x = (e.clientX / containerRef.value.offsetWidth) * 2 - 1;
+	mouse.y = -(e.clientY / containerRef.value.offsetHeight) * 2 + 1;
+
+	// Raycaster를 사용하여 마우스와 plane이 교차하는지 검출
+	raycaster.setFromCamera(mouse, camera);
+	const intersects = raycaster.intersectObject(plane);
+
+	if (intersects.length > 0) {
+		const intersectionPoint = intersects[0].point;
+		console.log('Intersection Point:', intersectionPoint);
+
+		gsap.to(objRef.value.position, { x: intersectionPoint.x, duration: 2 });
+		gsap.to(objRef.value.position, { z: intersectionPoint.z, duration: 2 });
 	}
 };
 
 onMounted(() => {
+	containerRef.value.addEventListener('click', onMouseClick);
 	window.addEventListener('keydown', onKeyDown);
 	window.addEventListener('keyup', onKeyUp);
 	camera = new THREE.PerspectiveCamera(

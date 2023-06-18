@@ -7,21 +7,17 @@
 <script setup>
 import gsap from 'gsap';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 const containerRef = ref();
-const objRef = ref();
 let camera;
 let raf;
 
-const fogColor = 0x004fff;
 const objColor = 0xffffff;
-const floorColor = 0x555555;
 
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-scene.background = new THREE.Color(fogColor);
-scene.fog = new THREE.Fog(fogColor, 2, 16); // 거리
+scene.background = new THREE.Color(0x555555);
 
 // torus
 const geometry = new THREE.TorusGeometry(0.7, 0.3, 12, 80);
@@ -29,14 +25,23 @@ const material = new THREE.MeshStandardMaterial({ color: objColor });
 const obj = new THREE.Mesh(geometry, material);
 obj.position.set(0, 0.8, 0);
 scene.add(obj);
-objRef.value = obj;
 
 // plane
+const canvas = document.createElement('canvas');
+canvas.width = 30;
+canvas.height = 30;
+const context = canvas.getContext('2d');
+const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+gradient.addColorStop(0, 'blue');
+gradient.addColorStop(1, 'yellow');
+context.fillStyle = gradient;
+context.fillRect(0, 0, canvas.width, canvas.height);
+const texture = new THREE.CanvasTexture(canvas);
+const planeMaterial = new THREE.MeshStandardMaterial({ map: texture });
 const planeGeometry = new THREE.PlaneGeometry(30, 30, 1, 1);
-const planeMaterial = new THREE.MeshStandardMaterial({ color: floorColor });
 const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-plane.rotation.set(-0.5 * Math.PI, 0, 0);
-plane.position.set(0, -0.5, 0);
+plane.rotation.set(-Math.PI / 2, 0, 0);
+plane.position.set(0, -0.1, 0);
 scene.add(plane);
 
 // light
@@ -51,18 +56,20 @@ function init() {
 		containerRef.value.offsetHeight,
 	);
 	containerRef.value.appendChild(renderer.domElement);
-	const controls = new OrbitControls(camera, renderer.domElement);
-	controls.minDistance = 3;
-	controls.maxDistance = 6;
-	controls.maxPolarAngle = Math.PI / 2 - 0.1;
-	controls.update();
 }
 
+const cameraY = 10; // obj로부터의 카메라 높이
+const cameraZ = 4; // obj로부터의 카메라 거리
+const offset = new THREE.Vector3(0, cameraY, -cameraZ);
 function animate() {
 	camera.updateMatrixWorld();
 	obj.rotation.y += 0.01;
 	renderer.render(scene, camera);
 	raf = requestAnimationFrame(animate);
+
+	const targetPosition = obj.position.clone().add(offset);
+	camera.position.copy(targetPosition);
+	camera.lookAt(obj.position);
 }
 
 const onResize = () => {
@@ -75,60 +82,46 @@ const onResize = () => {
 	);
 };
 
-const onKeyDown = e => {
-	if (e.key === 'd') {
-		gsap.to(objRef.value.position, { x: '+=0.1', duration: 0.1 });
-	} else if (e.key === 'a') {
-		gsap.to(objRef.value.position, { x: '-=0.1', duration: 0.1 });
-	} else if (e.key === 'w') {
-		gsap.to(objRef.value.position, { z: '-=0.1', duration: 0.1 });
-	} else if (e.key === 's') {
-		gsap.to(objRef.value.position, { z: '+=0.1', duration: 0.1 });
-	}
-};
-const onKeyUp = e => {
-	// if (e.key === 'd') {
-	// 	gsap.killTweensOf(objRef.value.position);
-	// }
-};
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-const onMouseClick = e => {
-	// 마우스의 클릭 위치를 정규화된 장치 좌표(normalized device coordinates)로 변환
+const onClick = e => {
 	mouse.x = (e.clientX / containerRef.value.offsetWidth) * 2 - 1;
 	mouse.y = -(e.clientY / containerRef.value.offsetHeight) * 2 + 1;
 
-	// Raycaster를 사용하여 마우스와 plane이 교차하는지 검출
 	raycaster.setFromCamera(mouse, camera);
 	const intersects = raycaster.intersectObject(plane);
 
 	if (intersects.length > 0) {
 		const intersectionPoint = intersects[0].point;
-		console.log('Intersection Point:', intersectionPoint);
+		console.log('클릭 좌표:', intersectionPoint);
 
-		gsap.to(objRef.value.position, { x: intersectionPoint.x, duration: 2 });
-		gsap.to(objRef.value.position, { z: intersectionPoint.z, duration: 2 });
+		const distance = obj.position.distanceTo(intersectionPoint);
+		const speed = 5;
+		const duration = distance / speed;
+		gsap.to(obj.position, {
+			x: intersectionPoint.x,
+			z: intersectionPoint.z,
+			duration,
+		});
 	}
 };
 
 onMounted(() => {
-	containerRef.value.addEventListener('click', onMouseClick);
-	window.addEventListener('keydown', onKeyDown);
-	window.addEventListener('keyup', onKeyUp);
 	camera = new THREE.PerspectiveCamera(
 		80,
 		containerRef.value.offsetWidth / containerRef.value.offsetHeight,
 		0.1,
 		1000,
 	);
-	camera.position.set(0, 2, 3);
-	camera.lookAt(0, 0, 0);
+	// camera.position.set(0, 2, 3);
+	// camera.lookAt(0, 0, 0);
 
 	init();
 	animate();
 
 	window.addEventListener('resize', onResize);
+	containerRef.value.addEventListener('click', onClick);
 });
 
 onBeforeUnmount(() => {

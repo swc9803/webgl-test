@@ -23,6 +23,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 header {
+	position: absolute;
 	line-height: 1.5;
 	max-height: 100vh;
 }

@@ -1,5 +1,5 @@
 <template>
-	<p class="center">{{ close }}</p>
+	<p class="center">Box{{ close }}</p>
 	<div class="wrapper">
 		<div ref="containerRef" class="container" />
 	</div>
@@ -14,9 +14,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 const containerRef = ref();
 let camera;
 let raf;
-const close = ref(false);
-
-const objColor = 0xffffff;
+const close = ref(0);
 
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -32,15 +30,23 @@ let obj;
 const loader = new GLTFLoader();
 loader.load('/fish.glb', gltf => {
 	obj = gltf.scene;
-	// obj.scale.set(0.3, 0.3, 0.3);
 	scene.add(obj);
 });
 
-const geometry2 = new THREE.TorusGeometry(0.7, 0.3, 12, 80);
-const material2 = new THREE.MeshStandardMaterial({ color: objColor });
-const obj2 = new THREE.Mesh(geometry2, material2);
-obj2.position.set(-15, 0, -15);
-scene.add(obj2);
+const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+const box1 = new THREE.Mesh(boxGeometry, boxMaterial);
+box1.position.set(15, 0, 15);
+scene.add(box1);
+const box2 = new THREE.Mesh(boxGeometry, boxMaterial);
+box2.position.set(-15, 0, 15);
+scene.add(box2);
+const box3 = new THREE.Mesh(boxGeometry, boxMaterial);
+box3.position.set(15, 0, -15);
+scene.add(box3);
+const box4 = new THREE.Mesh(boxGeometry, boxMaterial);
+box4.position.set(-15, 0, -15);
+scene.add(box4);
 
 // plane
 // const planeMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
@@ -50,7 +56,7 @@ scene.add(obj2);
 // plane.position.set(0, -1, 0);
 // scene.add(plane);
 
-const floorGeometry = new THREE.CircleGeometry(15, 32);
+const floorGeometry = new THREE.CircleGeometry(22, 32);
 const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 floor.rotation.set(-Math.PI / 2, 0, 0);
@@ -73,8 +79,8 @@ function init() {
 	containerRef.value.appendChild(renderer.domElement);
 }
 
-const cameraY = 8; // obj로부터의 카메라 높이
-const cameraZ = 8; // obj로부터의 카메라 거리
+const cameraY = 13; // obj로부터의 카메라 높이
+const cameraZ = 13; // obj로부터의 카메라 거리
 const offset = new THREE.Vector3(0, cameraY, -cameraZ);
 function animate() {
 	camera.updateMatrixWorld();
@@ -116,28 +122,36 @@ const onClick = e => {
 		const speed = 5;
 		const duration = distance / speed;
 
+		gsap.killTweensOf(obj.position);
 		gsap.to(obj.position, {
 			x: intersectionPoint.x,
 			z: intersectionPoint.z,
 			duration,
 			onUpdate: () => {
-				const distance = obj.position.distanceTo(obj2.position);
-				if (distance > 3) {
-					close.value = false;
+				const box1distance = obj.position.distanceTo(box1.position);
+				const box2distance = obj.position.distanceTo(box2.position);
+				const box3distance = obj.position.distanceTo(box3.position);
+				const box4distance = obj.position.distanceTo(box4.position);
+				if (box1distance <= 3) {
+					close.value = 1;
+				} else if (box2distance <= 3) {
+					close.value = 2;
+				} else if (box3distance <= 3) {
+					close.value = 3;
+				} else if (box4distance <= 3) {
+					close.value = 4;
 				} else {
-					close.value = true;
+					close.value = 0;
 				}
 			},
-			onStart: () => {
-				// 클릭 방향을 구하기 위해 obj가 바라볼 대상 지점을 계산합니다.
-				const lookAtPoint = new THREE.Vector3(
-					intersectionPoint.x,
-					obj.position.y,
-					intersectionPoint.z,
-				);
-				obj.lookAt(lookAtPoint);
-			},
 		});
+
+		const lookAtPoint = new THREE.Vector3(
+			intersectionPoint.x,
+			obj.position.y,
+			intersectionPoint.z,
+		);
+		obj.lookAt(lookAtPoint);
 	}
 };
 
@@ -167,6 +181,15 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
+.center {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	color: white;
+	font-size: 5em;
+	z-index: 1;
+}
 .wrapper {
 	width: 100%;
 	height: calc(var(--vh) * 100);

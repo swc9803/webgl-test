@@ -1,11 +1,12 @@
 <template>
-	<p class="center">Box{{ close }}</p>
+	<p class="center">Box{{ openBox }}</p>
 	<div class="wrapper">
 		<div ref="containerRef" class="container" />
 	</div>
 </template>
 
 <script setup>
+import { watch } from 'vue';
 import gsap from 'gsap';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -14,11 +15,45 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 const containerRef = ref();
 let camera;
 let raf;
-const close = ref(0);
+let mixer;
+const openBox = ref(0);
 
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 scene.background = new THREE.Color(0x555555);
+
+watch(openBox, () => {
+	if (openBox.value === 1) {
+		mixer = new THREE.AnimationMixer(chest1.scene);
+		const action = mixer.clipAction(chest1.animations[1]);
+		action.setLoop(THREE.LoopOnce);
+		action.clampWhenFinished = true;
+
+		action.play();
+	} else if (openBox.value === 2) {
+		mixer = new THREE.AnimationMixer(chest2.scene);
+		const action = mixer.clipAction(chest2.animations[1]);
+		action.setLoop(THREE.LoopOnce);
+		action.clampWhenFinished = true;
+
+		action.play();
+		console.log('2');
+	} else if (openBox.value === 3) {
+		mixer = new THREE.AnimationMixer(chest3.scene);
+		const action = mixer.clipAction(chest3.animations[1]);
+		action.setLoop(THREE.LoopOnce);
+		action.clampWhenFinished = true;
+
+		action.play();
+	} else if (openBox.value === 4) {
+		mixer = new THREE.AnimationMixer(chest4.scene);
+		const action = mixer.clipAction(chest4.animations[1]);
+		action.setLoop(THREE.LoopOnce);
+		action.clampWhenFinished = true;
+
+		action.play();
+	}
+});
 
 // torus
 // const geometry = new THREE.TorusGeometry(0.7, 0.3, 12, 80);
@@ -31,6 +66,36 @@ const loader = new GLTFLoader();
 loader.load('/fish.glb', gltf => {
 	obj = gltf.scene;
 	scene.add(obj);
+});
+
+let chest1, chest2, chest3, chest4;
+loader.load('/chest.glb', gltf => {
+	chest1 = gltf;
+	chest1.scene.scale.set(0.02, 0.02, 0.02);
+	chest1.scene.position.set(15, 0, 15);
+
+	scene.add(chest1.scene);
+});
+loader.load('/chest.glb', gltf => {
+	chest2 = gltf;
+	chest2.scene.scale.set(0.02, 0.02, 0.02);
+	chest2.scene.position.set(-15, 0, 15);
+
+	scene.add(chest2.scene);
+});
+loader.load('/chest.glb', gltf => {
+	chest3 = gltf;
+	chest3.scene.scale.set(0.02, 0.02, 0.02);
+	chest3.scene.position.set(15, 0, -15);
+
+	scene.add(chest3.scene);
+});
+loader.load('/chest.glb', gltf => {
+	chest4 = gltf;
+	chest4.scene.scale.set(0.02, 0.02, 0.02);
+	chest4.scene.position.set(-15, 0, -15);
+
+	scene.add(chest4.scene);
 });
 
 const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -87,6 +152,8 @@ function animate() {
 	renderer.render(scene, camera);
 	raf = requestAnimationFrame(animate);
 
+	if (mixer) mixer.update(0.01);
+
 	if (obj) {
 		const targetPosition = obj.position.clone().add(offset);
 		camera.position.copy(targetPosition);
@@ -132,16 +199,17 @@ const onClick = e => {
 				const box2distance = obj.position.distanceTo(box2.position);
 				const box3distance = obj.position.distanceTo(box3.position);
 				const box4distance = obj.position.distanceTo(box4.position);
+
 				if (box1distance <= 3) {
-					close.value = 1;
+					openBox.value = 1;
 				} else if (box2distance <= 3) {
-					close.value = 2;
+					openBox.value = 2;
 				} else if (box3distance <= 3) {
-					close.value = 3;
+					openBox.value = 3;
 				} else if (box4distance <= 3) {
-					close.value = 4;
+					openBox.value = 4;
 				} else {
-					close.value = 0;
+					openBox.value = 0;
 				}
 			},
 		});
@@ -183,11 +251,11 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .center {
 	position: absolute;
-	top: 50%;
+	top: 80%;
 	left: 50%;
 	transform: translate(-50%, -50%);
 	color: white;
-	font-size: 5em;
+	font-size: 3em;
 	z-index: 1;
 }
 .wrapper {

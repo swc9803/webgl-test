@@ -3,9 +3,11 @@
 	<div class="wrapper">
 		<div ref="containerRef" class="container" />
 	</div>
-	<div v-for="content in contents" :key="content">
+	<div v-for="(content, index) in contents" :key="content">
 		<transition name="fade">
-			<div>{{ content.name }}</div>
+			<div v-show="openBox === index + 1">
+				<div class="test">{{ content.name }}</div>
+			</div>
 		</transition>
 	</div>
 </template>
@@ -48,7 +50,6 @@ watch(openBox, () => {
 		action.clampWhenFinished = true;
 
 		action.play();
-		console.log('2');
 	} else if (openBox.value === 3) {
 		mixer = new THREE.AnimationMixer(chest3.scene);
 		const action = mixer.clipAction(chest3.animations[1]);
@@ -252,5 +253,28 @@ onBeforeUnmount(() => {
 		width: 100%;
 		height: 100%;
 	}
+}
+.test {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 20%;
+	height: 20%;
+	color: white;
+	background: rgb(175, 175, 175);
+	font-size: 2em;
+	text-align: center;
+	z-index: 3;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+	transition: 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+	opacity: 0;
 }
 </style>

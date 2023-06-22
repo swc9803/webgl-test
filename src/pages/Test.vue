@@ -3,6 +3,11 @@
 	<div class="wrapper">
 		<div ref="containerRef" class="container" />
 	</div>
+	<div v-for="content in contents" :key="content">
+		<transition name="fade">
+			<div>{{ content.name }}</div>
+		</transition>
+	</div>
 </template>
 
 <script setup>
@@ -10,7 +15,13 @@ import { watch } from 'vue';
 import gsap from 'gsap';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
+const contents = [
+	{ name: '포트폴리오' },
+	{ name: '갤러리' },
+	{ name: '깃허브' },
+	{ name: '코드팬' },
+];
 
 const containerRef = ref();
 let camera;
@@ -55,12 +66,6 @@ watch(openBox, () => {
 	}
 });
 
-// torus
-// const geometry = new THREE.TorusGeometry(0.7, 0.3, 12, 80);
-// const material = new THREE.MeshStandardMaterial({ color: objColor });
-// const obj = new THREE.Mesh(geometry, material);
-// obj.position.set(0, 0, 0);
-// scene.add(obj);
 let obj;
 const loader = new GLTFLoader();
 loader.load('/fish.glb', gltf => {
@@ -72,6 +77,7 @@ let chest1, chest2, chest3, chest4;
 loader.load('/chest.glb', gltf => {
 	chest1 = gltf;
 	chest1.scene.scale.set(0.02, 0.02, 0.02);
+	chest1.scene.rotation.y = Math.PI;
 	chest1.scene.position.set(15, 0, 15);
 
 	scene.add(chest1.scene);
@@ -79,6 +85,7 @@ loader.load('/chest.glb', gltf => {
 loader.load('/chest.glb', gltf => {
 	chest2 = gltf;
 	chest2.scene.scale.set(0.02, 0.02, 0.02);
+	chest2.scene.rotation.y = Math.PI;
 	chest2.scene.position.set(-15, 0, 15);
 
 	scene.add(chest2.scene);
@@ -86,6 +93,7 @@ loader.load('/chest.glb', gltf => {
 loader.load('/chest.glb', gltf => {
 	chest3 = gltf;
 	chest3.scene.scale.set(0.02, 0.02, 0.02);
+	chest3.scene.rotation.y = Math.PI;
 	chest3.scene.position.set(15, 0, -15);
 
 	scene.add(chest3.scene);
@@ -93,33 +101,11 @@ loader.load('/chest.glb', gltf => {
 loader.load('/chest.glb', gltf => {
 	chest4 = gltf;
 	chest4.scene.scale.set(0.02, 0.02, 0.02);
+	chest4.scene.rotation.y = Math.PI;
 	chest4.scene.position.set(-15, 0, -15);
 
 	scene.add(chest4.scene);
 });
-
-const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-const box1 = new THREE.Mesh(boxGeometry, boxMaterial);
-box1.position.set(15, 0, 15);
-scene.add(box1);
-const box2 = new THREE.Mesh(boxGeometry, boxMaterial);
-box2.position.set(-15, 0, 15);
-scene.add(box2);
-const box3 = new THREE.Mesh(boxGeometry, boxMaterial);
-box3.position.set(15, 0, -15);
-scene.add(box3);
-const box4 = new THREE.Mesh(boxGeometry, boxMaterial);
-box4.position.set(-15, 0, -15);
-scene.add(box4);
-
-// plane
-// const planeMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-// const planeGeometry = new THREE.PlaneGeometry(30, 30, 1, 1);
-// const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-// plane.rotation.set(-Math.PI / 2, 0, 0);
-// plane.position.set(0, -1, 0);
-// scene.add(plane);
 
 const floorGeometry = new THREE.CircleGeometry(22, 32);
 const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
@@ -195,18 +181,18 @@ const onClick = e => {
 			z: intersectionPoint.z,
 			duration,
 			onUpdate: () => {
-				const box1distance = obj.position.distanceTo(box1.position);
-				const box2distance = obj.position.distanceTo(box2.position);
-				const box3distance = obj.position.distanceTo(box3.position);
-				const box4distance = obj.position.distanceTo(box4.position);
+				const box1distance = obj.position.distanceTo(chest1.scene.position);
+				const box2distance = obj.position.distanceTo(chest2.scene.position);
+				const box3distance = obj.position.distanceTo(chest3.scene.position);
+				const box4distance = obj.position.distanceTo(chest4.scene.position);
 
-				if (box1distance <= 3) {
+				if (box1distance <= 5) {
 					openBox.value = 1;
-				} else if (box2distance <= 3) {
+				} else if (box2distance <= 5) {
 					openBox.value = 2;
-				} else if (box3distance <= 3) {
+				} else if (box3distance <= 5) {
 					openBox.value = 3;
-				} else if (box4distance <= 3) {
+				} else if (box4distance <= 5) {
 					openBox.value = 4;
 				} else {
 					openBox.value = 0;

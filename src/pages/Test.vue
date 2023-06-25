@@ -3,10 +3,10 @@
 	<div class="wrapper">
 		<div ref="containerRef" class="container" />
 	</div>
-	<div v-for="(content, index) in contents" :key="content">
+	<div v-for="(content, index) in contents" :key="content" class="message">
 		<transition name="fade">
-			<div v-show="openBox === index + 1">
-				<div class="test">{{ content.name }}</div>
+			<div v-show="openBox === index + 1" class="test">
+				{{ content.name }}
 			</div>
 		</transition>
 	</div>
@@ -254,27 +254,34 @@ onBeforeUnmount(() => {
 		height: 100%;
 	}
 }
-.test {
+.message {
 	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	width: 20%;
-	height: 20%;
-	color: white;
-	background: rgb(175, 175, 175);
-	font-size: 2em;
-	text-align: center;
+	width: 60%;
+	height: 500px;
+	pointer-events: none;
 	z-index: 3;
+	.test {
+		width: 100%;
+		height: 100%;
+		font-size: 2em;
+		text-align: center;
+		color: white;
+		background: rgb(175, 175, 175);
+		transform-origin: center;
+	}
 }
 
 .fade-enter-active,
 .fade-leave-active {
-	transition: 0.3s ease;
+	transition: 0.7s ease-in-out;
 }
 
 .fade-enter-from,
 .fade-leave-to {
-	opacity: 0;
+	// opacity: 0;
+	transform: scaleY(0);
 }
 </style>

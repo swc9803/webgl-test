@@ -28,44 +28,40 @@ const contents = [
 const containerRef = ref();
 let camera;
 let raf;
-let mixer;
 const openBox = ref(0);
 
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 scene.background = new THREE.Color(0x555555);
 
+let mixer;
 watch(openBox, () => {
 	if (openBox.value === 1) {
-		mixer = new THREE.AnimationMixer(chest1.scene);
-		const action = mixer.clipAction(chest1.animations[1]);
-		action.setLoop(THREE.LoopOnce);
-		action.clampWhenFinished = true;
-
-		action.play();
+		playAnimation(chest1, 1);
 	} else if (openBox.value === 2) {
-		mixer = new THREE.AnimationMixer(chest2.scene);
-		const action = mixer.clipAction(chest2.animations[1]);
-		action.setLoop(THREE.LoopOnce);
-		action.clampWhenFinished = true;
-
-		action.play();
+		playAnimation(chest2, 1);
 	} else if (openBox.value === 3) {
-		mixer = new THREE.AnimationMixer(chest3.scene);
-		const action = mixer.clipAction(chest3.animations[1]);
-		action.setLoop(THREE.LoopOnce);
-		action.clampWhenFinished = true;
-
-		action.play();
+		playAnimation(chest3, 1);
 	} else if (openBox.value === 4) {
-		mixer = new THREE.AnimationMixer(chest4.scene);
-		const action = mixer.clipAction(chest4.animations[1]);
-		action.setLoop(THREE.LoopOnce);
-		action.clampWhenFinished = true;
-
-		action.play();
+		playAnimation(chest4, 1);
+	} else {
+		playAnimation(chest1, 3);
+		playAnimation(chest2, 3);
+		playAnimation(chest3, 3);
+		playAnimation(chest4, 3);
 	}
 });
+
+function playAnimation(chest, animationIndex) {
+	if (chest.currentAnimation !== animationIndex) {
+		mixer = new THREE.AnimationMixer(chest.scene);
+		const action = mixer.clipAction(chest.animations[animationIndex]);
+		action.setLoop(THREE.LoopOnce);
+		action.clampWhenFinished = true;
+		action.play();
+		chest.currentAnimation = animationIndex;
+	}
+}
 
 let obj;
 const loader = new GLTFLoader();
@@ -173,7 +169,7 @@ const onClick = e => {
 		console.log('클릭 좌표:', intersectionPoint);
 
 		const distance = obj.position.distanceTo(intersectionPoint);
-		const speed = 5;
+		const speed = 15;
 		const duration = distance / speed;
 
 		gsap.killTweensOf(obj.position);
@@ -260,17 +256,19 @@ onBeforeUnmount(() => {
 	left: 50%;
 	transform: translate(-50%, -50%);
 	width: 60%;
-	height: 500px;
+	height: 60%;
 	pointer-events: none;
 	z-index: 3;
 	.test {
 		width: 100%;
 		height: 100%;
+		padding: 20px;
 		font-size: 2em;
 		text-align: center;
 		color: white;
 		background: rgb(175, 175, 175);
 		transform-origin: center;
+		opacity: 0.2;
 	}
 }
 

@@ -1,5 +1,4 @@
 <template>
-	<p class="center">Box{{ openBox }}</p>
 	<div class="wrapper">
 		<div ref="containerRef" class="container" />
 	</div>
@@ -35,33 +34,6 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 scene.background = new THREE.Color(0x555555);
 
 let mixer;
-watch(openBox, () => {
-	if (openBox.value === 1) {
-		playAnimation(chest1, 1);
-	} else if (openBox.value === 2) {
-		playAnimation(chest2, 1);
-	} else if (openBox.value === 3) {
-		playAnimation(chest3, 1);
-	} else if (openBox.value === 4) {
-		playAnimation(chest4, 1);
-	} else {
-		playAnimation(chest1, 3);
-		playAnimation(chest2, 3);
-		playAnimation(chest3, 3);
-		playAnimation(chest4, 3);
-	}
-});
-
-function playAnimation(chest, animationIndex) {
-	if (chest.currentAnimation !== animationIndex) {
-		mixer = new THREE.AnimationMixer(chest.scene);
-		const action = mixer.clipAction(chest.animations[animationIndex]);
-		action.setLoop(THREE.LoopOnce);
-		action.clampWhenFinished = true;
-		action.play();
-		chest.currentAnimation = animationIndex;
-	}
-}
 
 let obj;
 const loader = new GLTFLoader();
@@ -232,20 +204,10 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-.center {
-	position: absolute;
-	top: 80%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	color: white;
-	font-size: 3em;
-	z-index: 1;
-}
 .wrapper {
 	width: 100%;
 	height: calc(var(--vh) * 100);
 	.container {
-		position: relative;
 		width: 100%;
 		height: 100%;
 	}
@@ -276,7 +238,6 @@ onBeforeUnmount(() => {
 .fade-leave-active {
 	transition: 0.7s ease-in-out;
 }
-
 .fade-enter-from,
 .fade-leave-to {
 	// opacity: 0;
